@@ -2,6 +2,13 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
+/**
+ * The Stripe account cannot settle in KWD, so amounts are shown in KWD in the
+ * app and charged in USD at a fixed reference rate.
+ */
+const KWD_TO_USD = 3.25;
+const toUsdCents = (kwd: number) => Math.round(kwd * KWD_TO_USD * 100);
+
 const PaySchema = z.object({
   debtId: z.string().uuid(),
   origin: z.string().url().max(300),
