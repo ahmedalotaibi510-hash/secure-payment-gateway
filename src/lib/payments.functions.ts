@@ -100,16 +100,16 @@ export const createAssociationCheckout = createServerFn({ method: "POST" })
       return { ok: false as const, error: "لم يتم العثور على الجمعية." };
     }
 
-    const amountFils = Math.round(Number(association.monthly_share) * 1000);
-    if (amountFils < 1000) {
+    const amountCents = toUsdCents(Number(association.monthly_share));
+    if (amountCents < 200) {
       return { ok: false as const, error: "المبلغ صغير جداً للدفع الإلكتروني." };
     }
 
     const body = new URLSearchParams({
       mode: "payment",
       "line_items[0][quantity]": "1",
-      "line_items[0][price_data][currency]": "kwd",
-      "line_items[0][price_data][unit_amount]": String(amountFils),
+      "line_items[0][price_data][currency]": "usd",
+      "line_items[0][price_data][unit_amount]": String(amountCents),
       "line_items[0][price_data][product_data][name]": `سهم جمعية: ${association.title} (الشهر ${association.current_month})`,
       success_url: `${data.origin}/associations?paid=${association.id}`,
       cancel_url: `${data.origin}/associations`,
