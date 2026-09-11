@@ -116,6 +116,17 @@ function AssociationsScreen() {
     },
   });
 
+  const payMutation = useMutation({
+    mutationFn: async (associationId: string) => {
+      const result = await createAssociationCheckout({
+        data: { associationId, origin: window.location.origin },
+      });
+      if (!result.ok) throw new Error(result.error);
+      window.location.href = result.url;
+    },
+    onError: (error) => toast.error((error as Error).message),
+  });
+
   function shareInvite(name: string) {
     const text = `دعوة للانضمام إلى جمعية "${name}" على تطبيق مُستَحق: ${window.location.origin}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener");
