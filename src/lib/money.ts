@@ -1,6 +1,6 @@
 export function formatSar(value: number | string | null | undefined): string {
   const amount = Number(value ?? 0);
-  return `${amount.toLocaleString("ar-KW", { maximumFractionDigits: 3 })} د.ك`;
+  return `$${amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 export function formatDate(value: string | null | undefined): string {
