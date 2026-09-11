@@ -27,7 +27,7 @@ async function callProvider(
   apiKey: string,
   model: string,
   messages: ChatMessage[],
-): Promise<{ status: number; reply?: string }> {
+): Promise<{ status: number; reply?: string | undefined }> {
   const res = await fetch(url, {
     method: "POST",
     headers: {
