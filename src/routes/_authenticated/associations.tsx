@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Plus, Share2, Loader2, GripVertical } from "lucide-react";
+import { Plus, Share2, Loader2, GripVertical, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { formatSar } from "@/lib/money";
+import { createAssociationCheckout } from "@/lib/payments.functions";
 
 export const Route = createFileRoute("/_authenticated/associations")({
   head: () => ({
@@ -113,6 +114,17 @@ function AssociationsScreen() {
         error instanceof z.ZodError ? error.issues[0]!.message : (error as Error).message;
       toast.error(message);
     },
+  });
+
+  const payMutation = useMutation({
+    mutationFn: async (associationId: string) => {
+      const result = await createAssociationCheckout({
+        data: { associationId, origin: window.location.origin },
+      });
+      if (!result.ok) throw new Error(result.error);
+      window.location.href = result.url;
+    },
+    onError: (error) => toast.error((error as Error).message),
   });
 
   function shareInvite(name: string) {
@@ -271,9 +283,24 @@ function AssociationsScreen() {
                     سهم الشهر {formatSar(a.monthly_share)} · الإجمالي {formatSar(a.total_amount)}
                   </p>
                 </div>
-                <Button size="icon" variant="outline" onClick={() => shareInvite(a.title)}>
-                  <Share2 className="size-4" />
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    className="font-bold"
+                    onClick={() => payMutation.mutate(a.id)}
+                    disabled={payMutation.isPending}
+                  >
+                    {payMutation.isPending ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <CreditCard className="size-4" />
+                    )}
+                    دفع السهم
+                  </Button>
+                  <Button size="icon" variant="outline" onClick={() => shareInvite(a.title)}>
+                    <Share2 className="size-4" />
+                  </Button>
+                </div>
               </div>
               <Progress
                 className="mt-3"

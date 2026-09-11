@@ -68,3 +68,66 @@ export const createDebtCheckout = createServerFn({ method: "POST" })
     }
     return { ok: true as const, url: session.url };
   });
+
+const AssociationPaySchema = z.object({
+  associationId: z.string().uuid(),
+  origin: z.string().url().max(300),
+});
+
+/** Creates a Stripe Checkout session to pay the monthly share of an association. */
+export const createAssociationCheckout = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => AssociationPaySchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const secretKey = process.env["STRIPE_TEST_API_KEY"];
+    if (!secretKey) {
+      return { ok: false as const, error: "بوابة الدفع غير مهيأة حالياً." };
+    }
+
+    const { data: association, error } = await context.supabase
+      .from("associations")
+      .select("id, title, monthly_share, current_month")
+      .eq("id", data.associationId)
+      .single();
+
+    if (error || !association) {
+      return { ok: false as const, error: "لم يتم العثور على الجمعية." };
+    }
+
+    const amountFils = Math.round(Number(association.monthly_share) * 1000);
+    if (amountFils < 1000) {
+      return { ok: false as const, error: "المبلغ صغير جداً للدفع الإلكتروني." };
+    }
+
+    const body = new URLSearchParams({
+      mode: "payment",
+      "line_items[0][quantity]": "1",
+      "line_items[0][price_data][currency]": "kwd",
+      "line_items[0][price_data][unit_amount]": String(amountFils),
+      "line_items[0][price_data][product_data][name]": `سهم جمعية: ${association.title} (الشهر ${association.current_month})`,
+      success_url: `${data.origin}/associations?paid=${association.id}`,
+      cancel_url: `${data.origin}/associations`,
+      "metadata[association_id]": association.id,
+      "metadata[user_id]": context.userId,
+    });
+
+    const res = await fetch("https://api.stripe.com/v1/checkout/sessions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${secretKey}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body,
+    });
+
+    if (!res.ok) {
+      console.error("Stripe error", res.status, await res.text());
+      return { ok: false as const, error: "تعذّر إنشاء عملية الدفع، حاول لاحقاً." };
+    }
+
+    const session = (await res.json()) as { url?: string };
+    if (!session.url) {
+      return { ok: false as const, error: "تعذّر إنشاء رابط الدفع." };
+    }
+    return { ok: true as const, url: session.url };
+  });
