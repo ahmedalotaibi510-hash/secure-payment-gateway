@@ -14,7 +14,143 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      association_members: {
+        Row: {
+          association_id: string
+          created_at: string
+          id: string
+          name: string
+          owner_id: string
+          turn_order: number
+        }
+        Insert: {
+          association_id: string
+          created_at?: string
+          id?: string
+          name: string
+          owner_id: string
+          turn_order?: number
+        }
+        Update: {
+          association_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id?: string
+          turn_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "association_members_association_id_fkey"
+            columns: ["association_id"]
+            isOneToOne: false
+            referencedRelation: "associations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      associations: {
+        Row: {
+          created_at: string
+          current_month: number
+          id: string
+          members_count: number
+          monthly_share: number
+          my_turn_month: number | null
+          owner_id: string
+          payout_day: number
+          title: string
+          total_amount: number
+        }
+        Insert: {
+          created_at?: string
+          current_month?: number
+          id?: string
+          members_count?: number
+          monthly_share?: number
+          my_turn_month?: number | null
+          owner_id: string
+          payout_day?: number
+          title: string
+          total_amount?: number
+        }
+        Update: {
+          created_at?: string
+          current_month?: number
+          id?: string
+          members_count?: number
+          monthly_share?: number
+          my_turn_month?: number | null
+          owner_id?: string
+          payout_day?: number
+          title?: string
+          total_amount?: number
+        }
+        Relationships: []
+      }
+      debts: {
+        Row: {
+          amount: number
+          counterparty_name: string
+          counterparty_phone: string | null
+          created_at: string
+          direction: Database["public"]["Enums"]["debt_direction"]
+          due_date: string | null
+          id: string
+          note: string | null
+          owner_id: string
+          status: Database["public"]["Enums"]["debt_status"]
+        }
+        Insert: {
+          amount?: number
+          counterparty_name: string
+          counterparty_phone?: string | null
+          created_at?: string
+          direction?: Database["public"]["Enums"]["debt_direction"]
+          due_date?: string | null
+          id?: string
+          note?: string | null
+          owner_id: string
+          status?: Database["public"]["Enums"]["debt_status"]
+        }
+        Update: {
+          amount?: number
+          counterparty_name?: string
+          counterparty_phone?: string | null
+          created_at?: string
+          direction?: Database["public"]["Enums"]["debt_direction"]
+          due_date?: string | null
+          id?: string
+          note?: string | null
+          owner_id?: string
+          status?: Database["public"]["Enums"]["debt_status"]
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string
+          id: string
+          phone: string | null
+          trust_score: number
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string
+          id: string
+          phone?: string | null
+          trust_score?: number
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          id?: string
+          phone?: string | null
+          trust_score?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +159,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      debt_direction: "owed_to_me" | "i_owe"
+      debt_status: "confirmed" | "pending" | "late" | "paid"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +287,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      debt_direction: ["owed_to_me", "i_owe"],
+      debt_status: ["confirmed", "pending", "late", "paid"],
+    },
   },
 } as const
