@@ -82,7 +82,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "مُستَحق | إدارة الديون والجمعيات" },
       {
         name: "description",
-        content: "مُستَحق منصة سعودية لإدارة الديون الشخصية والجمعيات المالية بخصوصية تامة.",
+        content: "مُستَحق منصة كويتية لإدارة الديون الشخصية والجمعيات المالية بخصوصية تامة.",
       },
       { property: "og:title", content: "مُستَحق | إدارة الديون والجمعيات" },
       {
