@@ -283,9 +283,24 @@ function AssociationsScreen() {
                     سهم الشهر {formatSar(a.monthly_share)} · الإجمالي {formatSar(a.total_amount)}
                   </p>
                 </div>
-                <Button size="icon" variant="outline" onClick={() => shareInvite(a.title)}>
-                  <Share2 className="size-4" />
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    className="font-bold"
+                    onClick={() => payMutation.mutate(a.id)}
+                    disabled={payMutation.isPending}
+                  >
+                    {payMutation.isPending ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <CreditCard className="size-4" />
+                    )}
+                    دفع السهم
+                  </Button>
+                  <Button size="icon" variant="outline" onClick={() => shareInvite(a.title)}>
+                    <Share2 className="size-4" />
+                  </Button>
+                </div>
               </div>
               <Progress
                 className="mt-3"
