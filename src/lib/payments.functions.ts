@@ -30,8 +30,9 @@ export const createDebtCheckout = createServerFn({ method: "POST" })
       return { ok: false as const, error: "هذا الدين مسدد مسبقاً." };
     }
 
-    const amountHalalas = Math.round(Number(debt.amount) * 100);
-    if (amountHalalas < 200) {
+    // KWD has 3 decimal places: Stripe expects the amount in fils (1 KWD = 1000 fils).
+    const amountFils = Math.round(Number(debt.amount) * 1000);
+    if (amountFils < 1000) {
       return { ok: false as const, error: "المبلغ صغير جداً للدفع الإلكتروني." };
     }
 
