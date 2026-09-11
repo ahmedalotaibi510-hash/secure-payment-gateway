@@ -37,17 +37,16 @@ export const createDebtCheckout = createServerFn({ method: "POST" })
       return { ok: false as const, error: "هذا الدين مسدد مسبقاً." };
     }
 
-    // KWD has 3 decimal places: Stripe expects the amount in fils (1 KWD = 1000 fils).
-    const amountFils = Math.round(Number(debt.amount) * 1000);
-    if (amountFils < 1000) {
+    const amountCents = toUsdCents(Number(debt.amount));
+    if (amountCents < 200) {
       return { ok: false as const, error: "المبلغ صغير جداً للدفع الإلكتروني." };
     }
 
     const body = new URLSearchParams({
       mode: "payment",
       "line_items[0][quantity]": "1",
-      "line_items[0][price_data][currency]": "kwd",
-      "line_items[0][price_data][unit_amount]": String(amountFils),
+      "line_items[0][price_data][currency]": "usd",
+      "line_items[0][price_data][unit_amount]": String(amountCents),
       "line_items[0][price_data][product_data][name]": `سداد دين: ${debt.counterparty_name}`,
       success_url: `${data.origin}/debts?paid=${debt.id}`,
       cancel_url: `${data.origin}/debts`,
