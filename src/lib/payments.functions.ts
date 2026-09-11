@@ -39,8 +39,8 @@ export const createDebtCheckout = createServerFn({ method: "POST" })
     const body = new URLSearchParams({
       mode: "payment",
       "line_items[0][quantity]": "1",
-      "line_items[0][price_data][currency]": "sar",
-      "line_items[0][price_data][unit_amount]": String(amountHalalas),
+      "line_items[0][price_data][currency]": "kwd",
+      "line_items[0][price_data][unit_amount]": String(amountFils),
       "line_items[0][price_data][product_data][name]": `سداد دين: ${debt.counterparty_name}`,
       success_url: `${data.origin}/debts?paid=${debt.id}`,
       cancel_url: `${data.origin}/debts`,
