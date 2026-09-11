@@ -2,6 +2,13 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
+/**
+ * The Stripe account cannot settle in KWD, so amounts are shown in KWD in the
+ * app and charged in USD at a fixed reference rate.
+ */
+const KWD_TO_USD = 3.25;
+const toUsdCents = (kwd: number) => Math.round(kwd * KWD_TO_USD * 100);
+
 const PaySchema = z.object({
   debtId: z.string().uuid(),
   origin: z.string().url().max(300),
@@ -30,17 +37,16 @@ export const createDebtCheckout = createServerFn({ method: "POST" })
       return { ok: false as const, error: "هذا الدين مسدد مسبقاً." };
     }
 
-    // KWD has 3 decimal places: Stripe expects the amount in fils (1 KWD = 1000 fils).
-    const amountFils = Math.round(Number(debt.amount) * 1000);
-    if (amountFils < 1000) {
+    const amountCents = toUsdCents(Number(debt.amount));
+    if (amountCents < 200) {
       return { ok: false as const, error: "المبلغ صغير جداً للدفع الإلكتروني." };
     }
 
     const body = new URLSearchParams({
       mode: "payment",
       "line_items[0][quantity]": "1",
-      "line_items[0][price_data][currency]": "kwd",
-      "line_items[0][price_data][unit_amount]": String(amountFils),
+      "line_items[0][price_data][currency]": "usd",
+      "line_items[0][price_data][unit_amount]": String(amountCents),
       "line_items[0][price_data][product_data][name]": `سداد دين: ${debt.counterparty_name}`,
       success_url: `${data.origin}/debts?paid=${debt.id}`,
       cancel_url: `${data.origin}/debts`,
@@ -94,16 +100,16 @@ export const createAssociationCheckout = createServerFn({ method: "POST" })
       return { ok: false as const, error: "لم يتم العثور على الجمعية." };
     }
 
-    const amountFils = Math.round(Number(association.monthly_share) * 1000);
-    if (amountFils < 1000) {
+    const amountCents = toUsdCents(Number(association.monthly_share));
+    if (amountCents < 200) {
       return { ok: false as const, error: "المبلغ صغير جداً للدفع الإلكتروني." };
     }
 
     const body = new URLSearchParams({
       mode: "payment",
       "line_items[0][quantity]": "1",
-      "line_items[0][price_data][currency]": "kwd",
-      "line_items[0][price_data][unit_amount]": String(amountFils),
+      "line_items[0][price_data][currency]": "usd",
+      "line_items[0][price_data][unit_amount]": String(amountCents),
       "line_items[0][price_data][product_data][name]": `سهم جمعية: ${association.title} (الشهر ${association.current_month})`,
       success_url: `${data.origin}/associations?paid=${association.id}`,
       cancel_url: `${data.origin}/associations`,
