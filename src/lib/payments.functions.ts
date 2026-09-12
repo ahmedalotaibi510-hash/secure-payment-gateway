@@ -15,8 +15,7 @@ export const createDebtCheckout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => PaySchema.parse(input))
   .handler(async ({ data, context }) => {
-    const secretKey = process.env["STRIPE_TEST_API_KEY"];
-    if (!secretKey) {
+const secretKey = process.env["STRIPE_TEST_API_KEY"];
       return { ok: false as const, error: "بوابة الدفع غير مهيأة حالياً." };
     }
 
@@ -78,7 +77,7 @@ const AssociationPaySchema = z.object({
 
 /** Creates a Stripe Checkout session to pay the monthly share of an association. */
 export const createAssociationCheckout = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+const secretKey = process.env["STRIPE_TEST_API_KEY"] || process.env["STRIPE_SECRET_KEY"] || process.env["Secret_key"];
   .inputValidator((input: unknown) => AssociationPaySchema.parse(input))
   .handler(async ({ data, context }) => {
     const secretKey = process.env["STRIPE_TEST_API_KEY"];
